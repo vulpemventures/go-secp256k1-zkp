@@ -199,6 +199,60 @@
         "4ca016bb7f7a15d8c0e1825fb20b76f59750555caf61da77573c028cd3ef62e7"
       ],
       "expected": "e1a140ae971b82910bec2d98a712f757a27d079ce87f1c55a2a0c36f5af27922"
+    },
+    {
+      "nInputs": 0,
+      "values": [1402118166],
+      "blindFactors": [],
+      "blindGenerators": [
+        "2a4573f14ccfb1175c4a1fbcb541ef124cabbab9dce98a783fa50b300ed2d5dd"
+      ],
+      "expected": "9a0c1464053983bf75679461de15546afc7ab51e30301cfce50960829fee4565"
+    },
+    {
+      "nInputs": 0,
+      "values": [3638801394],
+      "blindFactors": [],
+      "blindGenerators": [
+        "56e33a1674c46b1951bb01131a2adfa3165ca7841fcb0b2e540e389766bfb5cd"
+      ],
+      "expected": "87261e97f306cc30e9743fef0312e5ed3107b4c635e9601bc7f0c832f9268689"
+    },
+    {
+      "nInputs": 0,
+      "values": [2211154800],
+      "blindFactors": [],
+      "blindGenerators": [
+        "2c114e642f7336e6e4c99f67143710f8e8d0e790f05adb2175fe19afd7d0200f"
+      ],
+      "expected": "e523b8f2fe9e044f4828159350596a4000fbcf12dfabfcd800ded564abf8c748"
+    },
+    {
+      "nInputs": 0,
+      "values": [2438659112],
+      "blindFactors": [],
+      "blindGenerators": [
+        "906bf458c1023e3af9c18a3284983615cc3ed7d7f529bff7a274a650d25d3ba2"
+      ],
+      "expected": "fe14541a5a31cb9d42dbd96fae6c19695309c3431fde5289f8113ddcf9aeb34c"
+    },
+    {
+      "nInputs": 0,
+      "values": [633090570],
+      "blindFactors": [],
+      "blindGenerators": [
+        "78d892719df56ff76c6ea36f1e8e1eef9a96dd02ba6ca599f4cf6084b7338ab6"
+      ],
+      "expected": "03ab9d48e82bae4912bceed99c77c6ecd4c1cd4f8f960512684e042d991d36f9"
+    },
+    {
+      "nInputs": 0,
+      "values": [405385747],
+      "blindFactors": [],
+      "blindGenerators": [
+        "c3446130478fc5e882712eba6eb17769b413a214689ba2e4f337366bb300cb16"
+      ],
+      "expected": "dee847143a412489a8df899443913284213c1f5aa2a4bde73d4de528e16fb683"
     }
   ]
 }
