@@ -97,40 +97,44 @@ func TestPedersenBlindSum(t *testing.T) {
 	}
 }
 
-// func TestPedersenBlindGeneratorBlindSum(t *testing.T) {
-// 	file, err := ioutil.ReadFile("testdata/pedersen.json")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	var tests map[string]interface{}
-// 	json.Unmarshal(file, &tests)
-// 	vectors := tests["blindGeneratorBlindSum"].([]interface{})
+func TestPedersenBlindGeneratorBlindSum(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/pedersen.json")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	ctx, _ := ContextCreate(ContextNone)
-// 	defer ContextDestroy(ctx)
+	type testVectorType struct {
+		NumInputs       int      `json:"nInputs"`
+		Values          []uint64 `json:"values"`
+		BlindGenerators []string `json:"blindGenerators"`
+		BlindFactors    []string `json:"blindFactors"`
+		Expected        string   `json:"expected"`
+	}
+	type testType struct {
+		Vectors []testVectorType `json:"blindGeneratorBlindSum"`
+	}
 
-// 	for _, testVector := range vectors {
-// 		v := testVector.(map[string]interface{})
+	var test testType
+	json.Unmarshal(file, &test)
 
-// 		nInputs := int(v["nInputs"].(float64))
-// 		values := []uint64{}
-// 		for _, val := range v["values"].([]interface{}) {
-// 			values = append(values, uint64(val.(float64)))
-// 		}
-// 		blindGenerators := [][]byte{}
-// 		for _, bg := range v["blindGenerators"].([]interface{}) {
-// 			blindGen, _ := hex.DecodeString(bg.(string))
-// 			blindGenerators = append(blindGenerators, blindGen)
-// 		}
-// 		blindFactors := [][]byte{}
-// 		for _, bf := range v["blindFactors"].([]interface{}) {
-// 			blindFct, _ := hex.DecodeString(bf.(string))
-// 			blindFactors = append(blindFactors, blindFct)
-// 		}
+	ctx, _ := ContextCreate(ContextNone)
+	defer ContextDestroy(ctx)
 
-// 		res, err := BlindGeneratorBlindSum(ctx, values, blindGenerators, blindFactors, nInputs)
-// 		assert.NoError(t, err)
-// 		assert.NotNil(t, res)
-// 		assert.Equal(t, v["expected"].(string), hex.EncodeToString(res[:]))
-// 	}
-// }
+	for _, v := range test.Vectors {
+		blindGenerators := [][]byte{}
+		for _, bg := range v.BlindGenerators {
+			blindGen, _ := hex.DecodeString(bg)
+			blindGenerators = append(blindGenerators, blindGen)
+		}
+		blindFactors := [][]byte{}
+		for _, bf := range v.BlindFactors {
+			blindFct, _ := hex.DecodeString(bf)
+			blindFactors = append(blindFactors, blindFct)
+		}
+
+		res, err := BlindGeneratorBlindSum(ctx, v.Values, blindGenerators, blindFactors, v.NumInputs)
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, v.Expected, hex.EncodeToString(res[:]))
+	}
+}
