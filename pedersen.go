@@ -11,7 +11,6 @@ import "C"
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"unsafe"
 )
 
@@ -253,15 +252,12 @@ func BlindGeneratorBlindSum(
 	for i := 0; i < vbl; i++ {
 		C.setBytesArray(gbls, cBuf(generatorblind[i]), C.int(i))
 		if i != fbl {
-			fmt.Println(hex.EncodeToString(blindingfactor[i]))
 			C.setBytesArray(fbls, cBuf(blindingfactor[i]), C.int(i))
 		} else {
 			out := make([]byte, 32)
-			fmt.Println(hex.EncodeToString(out))
 			C.setBytesArray(fbls, cBuf(out), C.int(i))
 		}
 	}
-	fmt.Println(" ")
 	defer C.freeBytesArray(gbls)
 	defer C.freeBytesArray(fbls)
 
@@ -280,7 +276,6 @@ func BlindGeneratorBlindSum(
 	for i := 0; i < vbl; i++ {
 		b := C.getBytesArray(fbls, C.int(i))
 		copy(results[i][:], C.GoBytes(unsafe.Pointer(b), 32))
-		fmt.Println(hex.EncodeToString(results[i][:]))
 	}
 	blindout = results[fbl]
 	return
