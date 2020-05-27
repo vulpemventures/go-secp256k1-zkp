@@ -57,7 +57,6 @@ func RangeProofSign(
 ) ([]byte, error) {
 	proof := make([]byte, MaxRangeProofSize)
 	proofLen := uint64(5134)
-	pProofLen := uintptr(unsafe.Pointer(&proofLen))
 
 	var cMsg *C.uchar
 	cMsgLen := 0
@@ -75,7 +74,7 @@ func RangeProofSign(
 	if 1 != C.secp256k1_rangeproof_sign(
 		context.ctx,
 		cBuf(proof),
-		(*C.size_t)(unsafe.Pointer(pProofLen)),
+		(*C.size_t)(unsafe.Pointer(&proofLen)),
 		C.uint64_t(minValue),
 		commit.com,
 		cBuf(blindingFactor[:]),
@@ -200,14 +199,13 @@ func RangeProofRewind(
 
 	var msg [4096]byte
 	msgLen := uint64(64)
-	pMsgLen := uintptr(unsafe.Pointer(&msgLen))
 
 	if 1 != C.secp256k1_rangeproof_rewind(
 		context.ctx,
 		cBuf(blindingFactor[:]),
 		(*C.uint64_t)(unsafe.Pointer(&value)),
 		cBuf(msg[:]),
-		(*C.size_t)(unsafe.Pointer(pMsgLen)),
+		(*C.size_t)(unsafe.Pointer(&msgLen)),
 		cBuf(nonce[:]),
 		(*C.uint64_t)(unsafe.Pointer(&minValue)),
 		(*C.uint64_t)(unsafe.Pointer(&maxValue)),
