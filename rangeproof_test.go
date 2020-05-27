@@ -137,6 +137,6 @@ func TestRangeProofRewind(t *testing.T) {
 		assert.Equal(t, expected["minValue"], strconv.Itoa(int(minValue)))
 		assert.Equal(t, expected["maxValue"], strconv.Itoa(int(maxValue)))
 		assert.Equal(t, expected["blindFactor"], hex.EncodeToString(blindingFactor[:]))
-		assert.Equal(t, len(expected["message"].(string)), len(hex.EncodeToString(message[:])))
+		assert.Equal(t, expected["message"].(string), hex.EncodeToString(message[:]))
 	}
 }
