@@ -5,7 +5,7 @@ This repo aims to provide the CGO bindings for the modules listed below of the n
 ## 🛣 Roadmap
 
 - [x] `secp256k1`
-- [ ] `secp256k1_ecdh`
+- [x] `secp256k1_ecdh`
 - [x] `secp256k1_generator`
 - [x] `secp256k1_rangeproof`
 - [x] `secp256k1_surjectionproof`
