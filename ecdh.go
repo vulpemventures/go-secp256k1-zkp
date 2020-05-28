@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"errors"
-	"unsafe"
 )
 
 const (
@@ -94,10 +93,6 @@ func EcPubkeySerialize(ctx *Context, publicKey *PublicKey, flags uint) (int, []b
 	outputLen := C.size_t(size)
 	result := int(C.secp256k1_ec_pubkey_serialize(ctx.ctx, &output[0], &outputLen, publicKey.pk, C.uint(flags)))
 	return result, goBytes(output, C.int(outputLen)), nil
-}
-
-func goBytes(cSlice []C.uchar, size C.int) []byte {
-	return C.GoBytes(unsafe.Pointer(&cSlice[0]), size)
 }
 
 // Compute an EC Diffie-Hellman secret in constant time. Return code is
