@@ -62,6 +62,10 @@ func u64Arr(a []uint64) *C.uint64_t {
 	return (*C.uint64_t)(unsafe.Pointer(&a[0]))
 }
 
+func goBytes(cSlice []C.uchar, size C.int) []byte {
+	return C.GoBytes(unsafe.Pointer(&cSlice[0]), size)
+}
+
 // ContextCreate produces a new *Context, initialized with a bitmask of flags
 // depending on it's intended usage. The supported flags are currently
 // ContextSign and ContextVerify. Although expressed in the return type
