@@ -8,7 +8,7 @@ This repo aims to provide the CGO bindings for the modules listed below of the n
 - [ ] `secp256k1_ecdh`
 - [x] `secp256k1_generator`
 - [x] `secp256k1_rangeproof`
-- [ ] `secp256k1_surjectionproof`
+- [x] `secp256k1_surjectionproof`
 
 ## Install
 
