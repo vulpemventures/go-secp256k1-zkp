@@ -3,10 +3,11 @@ package secp256k1_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
-	"vulpemventures/go-secp256k1-zkp"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/vulpemventures/go-secp256k1-zkp"
 )
 
 func TestEcdh(t *testing.T) {
