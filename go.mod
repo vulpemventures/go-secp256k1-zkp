@@ -1,4 +1,4 @@
-module vulpemventures/go-secp256k1-zkp
+module github.com/vulpemventures/go-secp256k1-zkp
 
 go 1.13
 
