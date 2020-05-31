@@ -31,12 +31,6 @@ $ cd go-secp256k1-zkp
 $ go get -t -v ./...
 ```
 
-- Checkout [Elements/secp256k1-zkp](https://github.com/ElementsProject/secp256k1-zkp) submodule:
-
-```sh
-$ git submodule update --init
-```
-
 - Run tests:
 
 ```sh
