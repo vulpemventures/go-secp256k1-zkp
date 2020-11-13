@@ -43,9 +43,8 @@ func init() {
 }
 
 func newContext() *Context {
-	return &Context{
-		ctx: &C.secp256k1_context{},
-	}
+	var ctx *C.secp256k1_context
+	return &Context{ctx}
 }
 
 func cBuf(goSlice []byte) *C.uchar {
