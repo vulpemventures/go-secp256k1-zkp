@@ -28,18 +28,18 @@ func TestSurjectionProofInitializeAndSerialize(t *testing.T) {
 		nMaxIterations := int(v["maxIterations"].(float64))
 		fixedOutputTag, err := FixedAssetTagFromHex(v["outputTag"].(string))
 		assert.NoError(t, err)
-		fixedInputTags := []FixedAssetTag{}
+		fixedInputTags := []*FixedAssetTag{}
 		for _, inTag := range v["inputTags"].([]interface{}) {
 			fixedAssetTag, err := FixedAssetTagFromHex(inTag.(string))
 			assert.NoError(t, err)
-			fixedInputTags = append(fixedInputTags, *fixedAssetTag)
+			fixedInputTags = append(fixedInputTags, fixedAssetTag)
 		}
 
 		proof, inputIndex, err := SurjectionProofInitialize(
 			ctx,
 			fixedInputTags,
 			nInputTagsToUse,
-			*fixedOutputTag,
+			fixedOutputTag,
 			nMaxIterations,
 			seed,
 		)
@@ -73,18 +73,18 @@ func TestSurjectionProofGenerateAndVerify(t *testing.T) {
 		assert.NoError(t, err)
 		ephemeralOutTag, err := GeneratorFromString(v["ephemeralOutputTag"].(string))
 		assert.NoError(t, err)
-		ephemeralInTags := []Generator{}
+		ephemeralInTags := []*Generator{}
 		for _, inTag := range v["ephemeralInputTags"].([]interface{}) {
 			ephemeralInTag, err := GeneratorFromString(inTag.(string))
 			assert.NoError(t, err)
-			ephemeralInTags = append(ephemeralInTags, *ephemeralInTag)
+			ephemeralInTags = append(ephemeralInTags, ephemeralInTag)
 		}
 
 		err = SurjectionProofGenerate(
 			ctx,
 			proof,
 			ephemeralInTags,
-			*ephemeralOutTag,
+			ephemeralOutTag,
 			inIndex,
 			inBlindingKey,
 			outBlindingKey,
@@ -92,6 +92,6 @@ func TestSurjectionProofGenerateAndVerify(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, proof)
 		assert.Equal(t, v["expected"].(string), proof.String())
-		assert.Equal(t, true, SurjectionProofVerify(ctx, proof, ephemeralInTags, *ephemeralOutTag))
+		assert.Equal(t, true, SurjectionProofVerify(ctx, proof, ephemeralInTags, ephemeralOutTag))
 	}
 }
