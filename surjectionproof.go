@@ -80,8 +80,8 @@ func (proof *SurjectionProof) String() string {
 	return hex.EncodeToString(bytes)
 }
 
-// CommitmentFromString takes a commitment in hex encoded format and returns
-// a commitment object
+// SurjectionProofFromString returns a surjection proof object from an hex
+// encoded string
 func SurjectionProofFromString(str string) (proof *SurjectionProof, err error) {
 	bytes, err := hex.DecodeString(str)
 	if err != nil {
@@ -292,39 +292,21 @@ func SurjectionProofNUsedInputs(
 //           input_index: The index of the actual input that is secretly mapped to the output
 func SurjectionProofInitialize(
 	context *Context,
-	fixedInputTags []FixedAssetTag,
+	fixedInputTags []*FixedAssetTag,
 	nInputTagsToUse int,
-	fixedOutputTag FixedAssetTag,
+	fixedOutputTag *FixedAssetTag,
 	nMaxIterations int,
 	seed32 []byte,
-) (
-	*SurjectionProof,
-	int,
-	error,
-) {
-	tags := C.makeFixedAssetTagsArray(C.int(len(fixedInputTags)))
-	defer C.freeFixedAssetTagsArray(tags)
-	for idx, asset := range fixedInputTags[:] {
-		C.setFixedAssetTagsArray(tags, asset.tag, C.size_t(idx))
-	}
-
-	proof := newSurjectionProof()
-	inputindex := C.size_t(0)
-	if 0 == C.secp256k1_surjectionproof_initialize(
-		context.ctx,
-		proof.proof,
-		&inputindex,
-		tags,
-		C.size_t(len(fixedInputTags)),
-		C.size_t(nInputTagsToUse),
-		fixedOutputTag.tag,
-		C.size_t(nMaxIterations),
-		cBuf(seed32),
-	) {
-		return nil, 0, errors.New(ErrSurjectionProofInitialization)
-	}
-
-	return proof, int(inputindex), nil
+) (*SurjectionProof, int, error) {
+	return surjectionProofInitialize(
+		context,
+		fixedInputTags,
+		len(fixedInputTags),
+		nInputTagsToUse,
+		fixedOutputTag,
+		nMaxIterations,
+		seed32,
+	)
 }
 
 // SurjectionProofAllocateInitialized proof allocation and initialization function; decides on inputs to use
@@ -348,7 +330,7 @@ func SurjectionProofInitialize(
 //           input_index: The index of the actual input that is secretly mapped to the output
 func SurjectionProofAllocateInitialized(
 	context *Context,
-	fixedInputTags []FixedAssetTag,
+	fixedInputTags []*FixedAssetTag,
 	nInputTagsToUse int,
 	fixedOutputTag *FixedAssetTag,
 	nMaxIterations int,
@@ -359,31 +341,15 @@ func SurjectionProofAllocateInitialized(
 	int,
 	error,
 ) {
-	tags := C.makeFixedAssetTagsArray(C.int(len(fixedInputTags)))
-	defer C.freeFixedAssetTagsArray(tags)
-	for idx, asset := range fixedInputTags {
-		C.setFixedAssetTagsArray(tags, asset.tag, C.size_t(idx))
-	}
-
-	inputindex := C.size_t(0)
-	proof := SurjectionProof{}
-	nIters := int(C.secp256k1_surjectionproof_allocate_initialized(
-		context.ctx,
-		&proof.proof,
-		&inputindex,
-		tags,
-		C.size_t(len(fixedInputTags)),
-		C.size_t(nInputTagsToUse),
-		fixedOutputTag.tag,
-		C.size_t(nMaxIterations),
-		cBuf(seed32),
-	))
-	if 0 == nIters {
-
-		return 0, nil, 0, errors.New(ErrSurjectionProofAllocation)
-	}
-
-	return nIters, &proof, int(inputindex), nil
+	return surjectionProofAllocateInitialized(
+		context,
+		fixedInputTags,
+		len(fixedInputTags),
+		nInputTagsToUse,
+		fixedOutputTag,
+		nMaxIterations,
+		seed32,
+	)
 }
 
 // SurjectionProofDestroy proof destroy function
@@ -405,35 +371,24 @@ func SurjectionProofDestroy(
 //        	 input_blinding_key: the blinding key of the input
 //       		 output_blinding_key: the blinding key of the output
 // 	 In/Out: proof: the produced surjection proof. Must have already gone through SurjectionProofGenerate
-func SurjectionProofGenerate(
-	context *Context,
+func SurjectionProofGenerate(context *Context,
 	proof *SurjectionProof,
-	ephemeralInputTags []Generator,
-	ephemeralOutputTag Generator,
+	ephemeralInputTags []*Generator,
+	ephemeralOutputTag *Generator,
 	inputIndex int,
 	inputBlindingKey []byte,
 	outputBlindingKey []byte,
 ) error {
-	tags := C.makeGeneratorsArray(C.int(len(ephemeralInputTags)))
-	defer C.freeGeneratorsArray(tags)
-	for idx, tag := range ephemeralInputTags {
-		C.setGeneratorsArray(tags, tag.gen, C.int(idx))
-	}
-
-	if 1 != C.secp256k1_surjectionproof_generate(
-		context.ctx,
-		proof.proof,
-		*tags,
-		C.size_t(len(ephemeralInputTags)),
-		ephemeralOutputTag.gen,
-		C.size_t(inputIndex),
-		cBuf(inputBlindingKey),
-		cBuf(outputBlindingKey)) {
-
-		return errors.New(ErrSurjectionProofGeneration)
-	}
-
-	return nil
+	return surjectionProofGenerate(
+		context,
+		proof,
+		ephemeralInputTags,
+		len(ephemeralInputTags),
+		ephemeralOutputTag,
+		inputIndex,
+		inputBlindingKey,
+		outputBlindingKey,
+	)
 }
 
 // SurjectionProofVerify  proof verification function
@@ -447,23 +402,147 @@ func SurjectionProofGenerate(
 func SurjectionProofVerify(
 	context *Context,
 	proof *SurjectionProof,
-	ephemeralInputTags []Generator,
-	ephemeralOutputTag Generator,
+	ephemeralInputTags []*Generator,
+	ephemeralOutputTag *Generator,
 ) bool {
-	tags := C.makeGeneratorsArray(C.int(len(ephemeralInputTags)))
-	defer C.freeGeneratorsArray(tags)
-	for idx, tag := range ephemeralInputTags {
-		C.setGeneratorsArray(tags, tag.gen, C.int(idx))
+	return surjectionProofVerify(
+		context,
+		proof,
+		ephemeralInputTags,
+		len(ephemeralInputTags),
+		ephemeralOutputTag,
+	)
+}
+
+func surjectionProofInitialize(
+	context *Context,
+	fixedInputTags []*FixedAssetTag,
+	nInputs int,
+	nInputTagsToUse int,
+	fixedOutputTag *FixedAssetTag,
+	nMaxIterations int,
+	seed32 []byte,
+) (*SurjectionProof, int, error) {
+	// cache data locally to prevent unexpected modifications
+	data := make([]C.secp256k1_fixed_asset_tag, nInputs)
+	ptrs := make([]*C.secp256k1_fixed_asset_tag, nInputs)
+	for i := 0; i < nInputs; i++ {
+		e := fixedInputTags[i]
+		data[i] = *(e.tag)
+		ptrs[i] = &data[i]
 	}
 
-	if 1 != C.secp256k1_surjectionproof_verify(
+	inputIndex := C.size_t(0)
+	proof := newSurjectionProof()
+	if 0 == int(C.secp256k1_surjectionproof_initialize(
 		context.ctx,
 		proof.proof,
-		*tags,
-		C.size_t(len(ephemeralInputTags)),
-		ephemeralOutputTag.gen) {
-		return false
+		&inputIndex,
+		ptrs[0],
+		C.size_t(nInputs),
+		C.size_t(nInputTagsToUse),
+		fixedOutputTag.tag,
+		C.size_t(nMaxIterations),
+		cBuf(seed32),
+	)) {
+		return nil, 0, errors.New(ErrSurjectionProofInitialization)
 	}
 
-	return true
+	return proof, int(inputIndex), nil
+}
+
+func surjectionProofAllocateInitialized(
+	context *Context,
+	fixedInputTags []*FixedAssetTag,
+	nInputs int,
+	nInputTagsToUse int,
+	fixedOutputTag *FixedAssetTag,
+	nMaxIterations int,
+	seed32 []byte,
+) (int, *SurjectionProof, int, error) {
+	// cache data locally to prevent unexpected modifications
+	data := make([]C.secp256k1_fixed_asset_tag, nInputs)
+	ptrs := make([]*C.secp256k1_fixed_asset_tag, nInputs)
+	for i := 0; i < nInputs; i++ {
+		e := fixedInputTags[i]
+		data[i] = *(e.tag)
+		ptrs[i] = &data[i]
+	}
+
+	inputIndex := C.size_t(0)
+	proof := SurjectionProof{}
+	nIters := int(C.secp256k1_surjectionproof_allocate_initialized(
+		context.ctx,
+		&proof.proof,
+		&inputIndex,
+		ptrs[0],
+		C.size_t(nInputs),
+		C.size_t(nInputTagsToUse),
+		fixedOutputTag.tag,
+		C.size_t(nMaxIterations),
+		cBuf(seed32),
+	))
+	if nIters <= 0 {
+		return -1, nil, -1, errors.New(ErrSurjectionProofAllocation)
+	}
+
+	return nIters, &proof, int(inputIndex), nil
+}
+
+func surjectionProofGenerate(
+	context *Context,
+	proof *SurjectionProof,
+	ephemeralInputTags []*Generator,
+	nInputs int,
+	ephemeralOutputTag *Generator,
+	inputIndex int,
+	inputBlindingKey []byte,
+	outputBlindingKey []byte,
+) error {
+	data := make([]C.secp256k1_generator, nInputs)
+	ptrs := make([]*C.secp256k1_generator, nInputs)
+	for i := 0; i < nInputs; i++ {
+		// cache data locally to prevent unexpected modifications
+		e := ephemeralInputTags[i]
+		data[i] = *(e.gen)
+		ptrs[i] = &data[i]
+	}
+
+	if 1 != C.secp256k1_surjectionproof_generate(
+		context.ctx,
+		proof.proof,
+		ptrs[0],
+		C.size_t(nInputs), //len(ephemeralInputTags)),
+		ephemeralOutputTag.gen,
+		C.size_t(inputIndex),
+		cBuf(inputBlindingKey),
+		cBuf(outputBlindingKey),
+	) {
+		return errors.New(ErrSurjectionProofGeneration)
+	}
+	return nil
+}
+
+func surjectionProofVerify(
+	context *Context,
+	proof *SurjectionProof,
+	ephemeralInputTags []*Generator,
+	nInputs int,
+	ephemeralOutputTag *Generator,
+) bool {
+	// cache data locally to prevent unexpected modifications
+	data := make([]C.secp256k1_generator, nInputs)
+	ptrs := make([]*C.secp256k1_generator, nInputs)
+	for i := 0; i < nInputs; i++ {
+		e := ephemeralInputTags[i]
+		data[i] = *(e.gen)
+		ptrs[i] = &data[i]
+	}
+	return 1 == C.secp256k1_surjectionproof_verify(
+		context.ctx,
+		proof.proof,
+		ptrs[0],
+		C.size_t(nInputs),
+		ephemeralOutputTag.gen,
+	)
 }
