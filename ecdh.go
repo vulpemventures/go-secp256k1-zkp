@@ -19,11 +19,14 @@ const (
 	LenCompressed   int = 33
 	LenUncompressed int = 65
 
-	ErrorPrivateKeySize  string = "private key must be exactly 32 bytes"
-	ErrorEcdh            string = "unable to do ecdh"
-	ErrorPublicKeyCreate string = "unable to produce public key"
-	ErrorPublicKeySize   string = "public key must be 33 or 65 bytes"
-	ErrorPublicKeyParse  string = "unable to parse this public key"
+	ErrorPrivateKeySize    string = "private key must be exactly 32 bytes"
+	ErrorEcdh              string = "unable to do ecdh"
+	ErrorPublicKeyCreate   string = "unable to produce public key"
+	ErrorPublicKeySize     string = "public key must be 33 or 65 bytes"
+	ErrorPublicKeyParse    string = "unable to parse this public key"
+	ErrorTweakingPublicKey string = "unable to tweak this public key"
+	ErrorTweakSize         string = "tweak must be exactly 32 bytes"
+	ErrorPublicKeyCombine  string = "unable to combine public key"
 )
 
 // PublicKey wraps a *secp256k1_pubkey, which contains the prefix plus
@@ -107,4 +110,51 @@ func Ecdh(ctx *Context, pubKey *PublicKey, privKey []byte) (int, []byte, error) 
 		return result, []byte{}, errors.New(ErrorEcdh)
 	}
 	return result, secret, nil
+}
+
+// Tweak a public key by adding tweak times the generator to it. The
+// return code is 0 if the tweak was out of range (chance of around 1 in
+// 2^128 for uniformly random 32-byte arrays) or if the resulting public
+// key would be invalid. The return code is 1 otherwise.
+func EcPubKeyTweakAdd(ctx *Context, pk *PublicKey, tweak []byte) (int, error) {
+	if len(tweak) != LenPrivateKey {
+		return 0, errors.New(ErrorTweakSize)
+	}
+
+	result := int(C.secp256k1_ec_pubkey_tweak_add(ctx.ctx, pk.pk, cBuf(tweak)))
+	if result != 1 {
+		return result, errors.New(ErrorTweakingPublicKey)
+	}
+	return result, nil
+}
+
+// EcPubKeyNegate will negate a public key object in place. The return code
+// is always 1.
+func EcPubKeyNegate(ctx *Context, pubkey *PublicKey) (int, error) {
+	result := int(C.secp256k1_ec_pubkey_negate(ctx.ctx, pubkey.pk))
+	return result, nil
+}
+
+// EcPubKeyCombine will compute sum of all the provided public keys,
+// returning a new point. The error code is 1 if the sum is valid, 0
+// otherwise. There must be at least one public key.
+func EcPubKeyCombine(ctx *Context, vPk []*PublicKey) (int, *PublicKey, error) {
+	l := len(vPk)
+	if l < 1 {
+		return 0, nil, errors.New("must provide at least one public key")
+	}
+
+	array := C.makePubkeyArray(C.int(l))
+	for i := 0; i < l; i++ {
+		C.setArrayPubkey(array, vPk[i].pk, C.int(i))
+	}
+
+	defer C.freePubkeyArray(array)
+
+	pkOut := newPublicKey()
+	result := int(C.secp256k1_ec_pubkey_combine(ctx.ctx, pkOut.pk, array, C.size_t(l)))
+	if result != 1 {
+		return result, nil, errors.New(ErrorPublicKeyCombine)
+	}
+	return result, pkOut, nil
 }

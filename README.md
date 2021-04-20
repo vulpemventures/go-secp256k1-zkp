@@ -1,6 +1,7 @@
 # go-secp256k1-zkp
 
-This repo aims to provide the CGO bindings for the modules listed below of the native [secp256k1-zkp C library](https://github.com/ElementsProject/secp256k1-zkp) (Elements version):
+This repo aims to provide the CGO bindings for the modules listed below of the native [secp256k1-zkp C library](https://github.com/ElementsProject/secp256k1-zkp) (Elements version):<br>
+This project gets inspiration from [olegabu/secp256k1-zkp](https://github.com/olegabu/go-secp256k1-zkp) but uses the native lib ElementsProject/secp256k1-zkp instead of [mimblewimble/secp256k1-zkp](https://github.com/mimblewimble/secp256k1-zkp)
 
 ## 🛣 Roadmap
 
