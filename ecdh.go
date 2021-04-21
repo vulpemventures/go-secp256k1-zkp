@@ -3,30 +3,36 @@ package secp256k1
 /*
 #include "include/secp256k1_ecdh.h"
 #cgo CFLAGS: -I${SRCDIR}/secp256k1-zkp -I${SRCDIR}/secp256k1-zkp/src
+inline secp256k1_pubkey** makePubkeyArray(int size) { return calloc(sizeof(secp256k1_pubkey*), size); }
+inline void setArrayPubkey(secp256k1_pubkey **a, secp256k1_pubkey *pubkey, int n) { a[n] = pubkey; }
+inline void freePubkeyArray(secp256k1_pubkey * *a) { free(a); }
 */
 import "C"
 
 import (
 	"errors"
+	"unsafe"
 )
 
 const (
 	// Flags for EcPubkeySerialize
-	EcCompressed = uint(C.SECP256K1_EC_COMPRESSED)
+	EcCompressed   = uint(C.SECP256K1_EC_COMPRESSED)
+	EcUncompressed = uint(C.SECP256K1_EC_UNCOMPRESSED)
 
 	// Length of elements byte representations
 	LenPrivateKey   int = 32
 	LenCompressed   int = 33
 	LenUncompressed int = 65
 
-	ErrorPrivateKeySize    string = "private key must be exactly 32 bytes"
-	ErrorEcdh              string = "unable to do ecdh"
-	ErrorPublicKeyCreate   string = "unable to produce public key"
-	ErrorPublicKeySize     string = "public key must be 33 or 65 bytes"
-	ErrorPublicKeyParse    string = "unable to parse this public key"
-	ErrorTweakingPublicKey string = "unable to tweak this public key"
-	ErrorTweakSize         string = "tweak must be exactly 32 bytes"
-	ErrorPublicKeyCombine  string = "unable to combine public key"
+	ErrorPrivateKeySize     string = "private key must be exactly 32 bytes"
+	ErrorEcdh               string = "unable to do ecdh"
+	ErrorPublicKeyCreate    string = "unable to produce public key"
+	ErrorPublicKeySize      string = "public key must be 33 or 65 bytes"
+	ErrorPublicKeyParse     string = "unable to parse this public key"
+	ErrorTweakingPublicKey  string = "unable to tweak this public key"
+	ErrorTweakSize          string = "tweak must be exactly 32 bytes"
+	ErrorPublicKeyCombine   string = "unable to combine public key"
+	ErrorTweakingPrivateKey string = "unable to tweak this private key"
 )
 
 // PublicKey wraps a *secp256k1_pubkey, which contains the prefix plus
@@ -128,10 +134,41 @@ func EcPubKeyTweakAdd(ctx *Context, pk *PublicKey, tweak []byte) (int, error) {
 	return result, nil
 }
 
+// EcPrivKeyTweakAdd modifies the provided `seckey` by adding tweak to
+// it. The return code is 0 if `tweak` was out of range (chance of
+// around 1 in 2^128 for uniformly random 32-byte arrays), or if the
+// resulting private key would be invalid (only when the tweak is the
+// complement of the private key). The return code is 1 otherwise.
+func EcPrivKeyTweakAdd(ctx *Context, seckey []byte, tweak []byte) (int, error) {
+	if len(tweak) != LenPrivateKey {
+		return 0, errors.New(ErrorTweakSize)
+	}
+	if len(seckey) != LenPrivateKey {
+		return 0, errors.New(ErrorPrivateKeySize)
+	}
+
+	result := int(C.secp256k1_ec_privkey_tweak_add(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0])), cBuf(tweak[:])))
+	if result != 1 {
+		return result, errors.New(ErrorTweakingPrivateKey)
+	}
+	return result, nil
+}
+
 // EcPubKeyNegate will negate a public key object in place. The return code
 // is always 1.
 func EcPubKeyNegate(ctx *Context, pubkey *PublicKey) (int, error) {
 	result := int(C.secp256k1_ec_pubkey_negate(ctx.ctx, pubkey.pk))
+	return result, nil
+}
+
+// EcPrivKeyNegate will negate a public key in place. The return code is
+// 1 if the operation was successful, or 0 if the length was invalid.
+func EcPrivKeyNegate(ctx *Context, seckey []byte) (int, error) {
+	if len(seckey) != LenPrivateKey {
+		return 0, errors.New(ErrorPrivateKeySize)
+	}
+
+	result := int(C.secp256k1_ec_privkey_negate(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0]))))
 	return result, nil
 }
 
