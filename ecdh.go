@@ -4,9 +4,9 @@ package secp256k1
 #include "include/secp256k1_ecdh.h"
 #include "stdlib.h"
 #cgo CFLAGS: -I${SRCDIR}/secp256k1-zkp -I${SRCDIR}/secp256k1-zkp/src
-inline secp256k1_pubkey** makePubkeyArray(int size) { return calloc(sizeof(secp256k1_pubkey*), size); }
-inline void setArrayPubkey(secp256k1_pubkey **a, secp256k1_pubkey *pubkey, int n) { a[n] = pubkey; }
-inline void freePubkeyArray(secp256k1_pubkey * *a) { free(a); }
+static secp256k1_pubkey** makePubkeyArray(int size) { return !size ? NULL : calloc(sizeof(secp256k1_pubkey*), size); }
+static void setArrayPubkey(secp256k1_pubkey **a, secp256k1_pubkey *pubkey, int n) { if (a) a[n] = pubkey; }
+static void freePubkeyArray(secp256k1_pubkey **a) { if (a) free(a); }
 */
 import "C"
 
