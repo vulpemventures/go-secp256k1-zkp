@@ -196,3 +196,21 @@ func EcPubKeyCombine(ctx *Context, vPk []*PublicKey) (int, *PublicKey, error) {
 	}
 	return result, pkOut, nil
 }
+
+// EcPrivKeyTweakMul tweak a private key by multiplying it by a tweak. The return code is 0
+// if the tweak was out of range (chance of around 1 in 2^128 for uniformly
+// random 32-byte arrays) or zero. The code is 1 otherwise.
+func EcPrivKeyTweakMul(ctx *Context, seckey []byte, tweak []byte) (int, error) {
+	if len(tweak) != LenPrivateKey {
+		return 0, errors.New(ErrorTweakSize)
+	}
+	if len(seckey) != LenPrivateKey {
+		return 0, errors.New(ErrorPrivateKeySize)
+	}
+
+	result := int(C.secp256k1_ec_privkey_tweak_mul(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0])), cBuf(tweak[:])))
+	if result != 1 {
+		return result, errors.New(ErrorTweakingPrivateKey)
+	}
+	return result, nil
+}
