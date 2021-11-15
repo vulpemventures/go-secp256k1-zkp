@@ -56,7 +56,7 @@ func TestEcdh(t *testing.T) {
 
 }
 
-func TestPubKeyTweakAddFixtures(t *testing.T) {
+func TestPubKeyTweakAddF(t *testing.T) {
 	ctx, err := secp256k1.ContextCreate(secp256k1.ContextSign | secp256k1.ContextVerify)
 	if err != nil {
 		panic(err)
@@ -161,6 +161,50 @@ func TestPubKeyNegate(t *testing.T) {
 
 	assert.Equal(t, LHS, rhs)
 
+}
+
+func TestPrivKeyTweakMultiply(t *testing.T) {
+	ctx, err := secp256k1.ContextCreate(secp256k1.ContextSign | secp256k1.ContextVerify)
+	if err != nil {
+		panic(err)
+	}
+
+	file, err := ioutil.ReadFile("testdata/privkey_tweak_mult_vectors.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var tests map[string]interface{}
+	err = json.Unmarshal(file, &tests)
+	if err != nil {
+		t.Error(err)
+	}
+
+	vectors := tests["tweak_mult"].([]interface{})
+
+
+	for _, testVector := range vectors {
+		v := testVector.(map[string]interface{})
+		privKeyBytes, err := hex.DecodeString(v["privkey"].(string))
+		if err != nil {
+			t.Error(err)
+		}
+
+		tweakBytes, err := hex.DecodeString(v["tweak"].(string))
+		if err != nil {
+			t.Error(err)
+		}
+
+		tweakedBytes, err := hex.DecodeString(v["tweaked"].(string))
+		if err != nil {
+			t.Error(err)
+		}
+
+		r, err := secp256k1.EcPrivKeyTweakMul(ctx, privKeyBytes, tweakBytes)
+		spOK(t, r, err)
+
+		assert.Equal(t, tweakedBytes, privKeyBytes)
+	}
 }
 
 func spOK(t *testing.T, result interface{}, err error) {
