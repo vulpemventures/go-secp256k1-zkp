@@ -134,7 +134,7 @@ func RangeProofInfo(
 //       	 	 gen: additional generator 'h'
 // 	 Out:  	 min_value: pointer to a unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
 //       	 	 max_value: pointer to a unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
-func RangeProofVerify(context *Context, proof []byte, commit *Commitment, extraCommit []byte, generator *Generator) bool {
+func RangeProofVerify(context *Context, proof []byte, commit *Commitment, extraCommit []byte, generator *Generator) (bool, int, int) {
 	var cExtraCmt *C.uchar
 	cExtraCmtLen := 0
 	if extraCommit != nil && len(extraCommit) > 0 {
@@ -156,10 +156,10 @@ func RangeProofVerify(context *Context, proof []byte, commit *Commitment, extraC
 		C.size_t(cExtraCmtLen),
 		generator.gen,
 	) {
-		return false
+		return false, 0, 0
 	}
 
-	return true
+	return true, minValue, maxValue
 }
 
 // RangeProofRewind verifies a range proof and rewind the proof to recover information sent by its author.
