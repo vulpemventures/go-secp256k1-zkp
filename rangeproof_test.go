@@ -97,11 +97,8 @@ func TestRangeProofVerify(t *testing.T) {
 		generator, err := GeneratorFromString(v["generator"].(string))
 		assert.NoError(t, err)
 
-		assert.Equal(
-			t,
-			v["expected"].(bool),
-			RangeProofVerify(ctx, proof, commit, extraCommit, generator),
-		)
+		valid, _, _ := RangeProofVerify(ctx, proof, commit, extraCommit, generator)
+		assert.Equal(t, v["expected"].(bool), valid)
 	}
 }
 
