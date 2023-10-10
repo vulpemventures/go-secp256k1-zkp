@@ -1,6 +1,8 @@
 package secp256k1
 
 /*
+#define SECP256K1_API __attribute__ ((visibility ("hidden")))
+
 #define USE_BASIC_CONFIG 1
 #include "./secp256k1-zkp/src/basic-config.h"
 
