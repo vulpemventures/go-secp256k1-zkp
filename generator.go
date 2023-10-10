@@ -1,9 +1,8 @@
 package secp256k1
 
 /*
-#include "include/secp256k1_generator.h"
-#include "include/secp256k1_rangeproof.h"
-#cgo CFLAGS: -I${SRCDIR}/secp256k1-zkp -I${SRCDIR}/secp256k1-zkp/src
+#include "./secp256k1-zkp/include/secp256k1_generator.h"
+#include "./secp256k1-zkp/include/secp256k1_rangeproof.h"
 */
 import "C"
 import (
@@ -68,9 +67,10 @@ func GeneratorParse(
 }
 
 // GeneratorSerialize serializes a 33-byte generator into a serialized byte sequence
-//  -> context   non-NULL context
-//  -> generator generator object
-//  <- bytes     33 bytes of data
+//
+//	-> context   non-NULL context
+//	-> generator generator object
+//	<- bytes     33 bytes of data
 func GeneratorSerialize(
 	context *Context,
 	generator *Generator,
@@ -122,17 +122,16 @@ func GeneratorFromBytes(bytes []byte) (gen *Generator, err error) {
 
 // GeneratorGenerate generates a generator for the curve.
 //
-//      Returns: 0 in the highly unlikely case the seed is not acceptable,
-//               1 otherwise.
-//      Args: ctx:     a secp256k1 context object
-//      Out:  gen:     a generator object
-//      In:   seed32:  a 32-byte seed
+//	Returns: 0 in the highly unlikely case the seed is not acceptable,
+//	         1 otherwise.
+//	Args: ctx:     a secp256k1 context object
+//	Out:  gen:     a generator object
+//	In:   seed32:  a 32-byte seed
 //
-//      If successful a valid generator will be placed in gen. The produced
-//      generators are distributed uniformly over the curve, and will not have a
-//      known discrete logarithm with respect to any other generator produced,
-//      or to the base generator G.
-//
+//	If successful a valid generator will be placed in gen. The produced
+//	generators are distributed uniformly over the curve, and will not have a
+//	known discrete logarithm with respect to any other generator produced,
+//	or to the base generator G.
 func GeneratorGenerate(ctx *Context, seed []byte) (*Generator, error) {
 	if ctx == nil {
 		ctx = SharedContext(ContextSign)
@@ -151,18 +150,17 @@ func GeneratorGenerate(ctx *Context, seed []byte) (*Generator, error) {
 
 // GeneratorGenerateBlinded generates a blinded generator for the curve.
 //
-//  		Returns: 0 in the highly unlikely case the seed is not acceptable or when
-//               blind is out of range.
-// 							 1 otherwise.
-//      Args: ctx:     a secp256k1 context object, initialized for signing
-//      Out:  gen:     a generator object
-//      In:   seed32:  a 32-byte seed
-//            blind32: a 32-byte secret value to blind the genesizeofrator with.
+//	 		Returns: 0 in the highly unlikely case the seed is not acceptable or when
+//	              blind is out of range.
+//								 1 otherwise.
+//	     Args: ctx:     a secp256k1 context object, initialized for signing
+//	     Out:  gen:     a generator object
+//	     In:   seed32:  a 32-byte seed
+//	           blind32: a 32-byte secret value to blind the genesizeofrator with.
 //
-//      The result is equivalent to first calling secp256k1_gensizeoferator_generate,
-//      converting the result to a public key, calling secp256k1_ec_pubkey_tweak_add,
-//      and then converting back to generator form.sizeof
-//
+//	     The result is equivalent to first calling secp256k1_gensizeoferator_generate,
+//	     converting the result to a public key, calling secp256k1_ec_pubkey_tweak_add,
+//	     and then converting back to generator form.sizeof
 func GeneratorGenerateBlinded(ctx *Context, seed []byte, blind []byte) (*Generator, error) {
 	if ctx == nil {
 		ctx = SharedContext(ContextSign)

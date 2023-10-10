@@ -1,8 +1,7 @@
 package secp256k1
 
-// #cgo CFLAGS: -I ${SRCDIR}/secp256k1-zkp -I ${SRCDIR}/secp256k1-zkp/src
 // #include <stdlib.h>
-// #include "include/secp256k1_rangeproof.h"
+// #include "./secp256k1-zkp/include/secp256k1_rangeproof.h"
 // static const unsigned char** makeBytesArray(int size) { return !size ? NULL : calloc(sizeof(unsigned char*), size); }
 // static void setBytesArray(unsigned char** a, unsigned char* v, int i) { if (a) a[i] = v; }
 // static unsigned char* getBytesArray(unsigned char** a, int i) { return !a ? NULL : a[i]; }
@@ -91,10 +90,11 @@ func CommitmentParse(
 }
 
 // CommitmentSerialize serializes a commitment into sequence of bytes.
-//  Returns: 1 always.
-//  Args:   ctx:        a secp256k1 context object.
-//  In:     Commitment  a commitment object
-//  Out:    serialized data: 33-byte byte array
+//
+//	Returns: 1 always.
+//	Args:   ctx:        a secp256k1 context object.
+//	In:     Commitment  a commitment object
+//	Out:    serialized data: 33-byte byte array
 func CommitmentSerialize(
 	context *Context,
 	commit *Commitment,
@@ -114,16 +114,16 @@ func CommitmentSerialize(
 
 // Commit generates a commitment
 //
-// 			Returns: 1:  Commitment successfully created.
-//   						 0:  Error. The blinding factor is larger than the group order *
-//       						 (probability for random 32 byte number < 2^-127) or results in the
-//       						 point at infinity. Retry with a different factor.
+//				Returns: 1:  Commitment successfully created.
+//	  						 0:  Error. The blinding factor is larger than the group order *
+//	      						 (probability for random 32 byte number < 2^-127) or results in the
+//	      						 point at infinity. Retry with a different factor.
 //
-//      Args ctx:  pointer to a context object (cannot be NULL)
-// 			Out: commit:  pointer to the commitment (cannot be NULL)
-//      In:  blind:  32-byte blinding factor (cannot be NULL)
-//   				 value:  unsigned 64-bit integer value to commit to.
-//	 				 value_gen:  value generator 'h'
+//	     Args ctx:  pointer to a context object (cannot be NULL)
+//				Out: commit:  pointer to the commitment (cannot be NULL)
+//	     In:  blind:  32-byte blinding factor (cannot be NULL)
+//	  				 value:  unsigned 64-bit integer value to commit to.
+//		 				 value_gen:  value generator 'h'
 //
 // Blinding factors can be generated and verified in the same way as secp256k1
 // private keys for ECDSA.
@@ -151,18 +151,17 @@ func Commit(
 
 // BlindSum computes the sum of multiple positive and negative blinding factors.
 //
-//  Returns 1: Sum successfully computed.
-//          0: Error. A blinding factor is larger than the group order
-//             (probability for random 32 byte number < 2^-127). Retry with
-//             different factors.
+//	Returns 1: Sum successfully computed.
+//	        0: Error. A blinding factor is larger than the group order
+//	           (probability for random 32 byte number < 2^-127). Retry with
+//	           different factors.
 //
-//  In:     ctx:        pointer to a context object (cannot be NULL)
-//          blinds:     pointer to pointers to 32-byte character arrays for blinding factors. (cannot be NULL)
-//          n:          number of factors pointed to by blinds.
-//          npositive:  how many of the input factors should be treated with a positive sign.
+//	In:     ctx:        pointer to a context object (cannot be NULL)
+//	        blinds:     pointer to pointers to 32-byte character arrays for blinding factors. (cannot be NULL)
+//	        n:          number of factors pointed to by blinds.
+//	        npositive:  how many of the input factors should be treated with a positive sign.
 //
-//  Out:    blind_out:  pointer to a 32-byte array for the sum (cannot be NULL)
-//
+//	Out:    blind_out:  pointer to a 32-byte array for the sum (cannot be NULL)
 func BlindSum(
 	context *Context,
 	posblinds [][]byte,
@@ -212,22 +211,25 @@ func BlindSum(
 // of the `blinding_factor` array, setting the total sum to zero.
 //
 // Returns 1: Blinding factor successfully computed.
-//         0: Error. A blinding_factor or generator_blind are larger than the group
-//            order (probability for random 32 byte number < 2^-127). Retry with
-//            different values.
+//
+//	0: Error. A blinding_factor or generator_blind are larger than the group
+//	   order (probability for random 32 byte number < 2^-127). Retry with
+//	   different values.
 //
 // In:                 ctx: pointer to a context object
-//                   value: array of asset values, `v` in the above paragraph.
-//                          May not be NULL unless `n_total` is 0.
-//         generator_blind: array of asset blinding factors, `r` in the above paragraph
-//                          May not be NULL unless `n_total` is 0.
-//                 n_total: Total size of the above arrays
-//                n_inputs: How many of the initial array elements represent commitments that
-//                          will be negated in the final sum
-// In/Out: blinding_factor: array of commitment blinding factors, `r'` in the above paragraph
-//                          May not be NULL unless `n_total` is 0.
-//                          the last value will be modified to get the total sum to zero.
 //
+//	          value: array of asset values, `v` in the above paragraph.
+//	                 May not be NULL unless `n_total` is 0.
+//	generator_blind: array of asset blinding factors, `r` in the above paragraph
+//	                 May not be NULL unless `n_total` is 0.
+//	        n_total: Total size of the above arrays
+//	       n_inputs: How many of the initial array elements represent commitments that
+//	                 will be negated in the final sum
+//
+// In/Out: blinding_factor: array of commitment blinding factors, `r'` in the above paragraph
+//
+//	May not be NULL unless `n_total` is 0.
+//	the last value will be modified to get the total sum to zero.
 func BlindGeneratorBlindSum(
 	context *Context,
 	value []uint64,
